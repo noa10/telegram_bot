@@ -24,6 +24,9 @@ const HomePage = () => {
       showMainButton('View Cart', () => navigate('/cart'));
     }
 
+    // Log for testing automatic deployment
+    console.log('Testing automatic deployment to Vercel');
+
     // Fetch products
     const fetchProducts = async () => {
       try {
