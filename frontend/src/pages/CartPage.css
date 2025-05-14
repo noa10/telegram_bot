@@ -1,0 +1,135 @@
+.cart-page {
+  padding: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cart-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.clear-cart-button {
+  background-color: transparent;
+  color: #ff3b30;
+  border: 1px solid #ff3b30;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.clear-cart-button:hover {
+  background-color: rgba(255, 59, 48, 0.1);
+}
+
+.cart-items {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-summary {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 16px;
+}
+
+.summary-row.total {
+  border-top: 1px solid #eee;
+  margin-top: 8px;
+  padding-top: 16px;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.checkout-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #0088cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: background-color 0.2s;
+}
+
+.checkout-button:hover {
+  background-color: #006699;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.empty-cart h2 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+}
+
+.empty-cart p {
+  margin: 0 0 24px 0;
+  color: #666;
+}
+
+.shop-button {
+  padding: 12px 24px;
+  background-color: #0088cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.shop-button:hover {
+  background-color: #006699;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cart-header h1 {
+    color: #fff;
+  }
+  
+  .cart-summary {
+    background-color: #2c2c2c;
+  }
+  
+  .summary-row {
+    color: #fff;
+  }
+  
+  .summary-row.total {
+    border-top-color: #444;
+  }
+  
+  .empty-cart h2 {
+    color: #fff;
+  }
+  
+  .empty-cart p {
+    color: #bbb;
+  }
+}

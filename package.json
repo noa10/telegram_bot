@@ -1,0 +1,31 @@
+{
+  "name": "telegram-ecommerce-mini-app",
+  "version": "1.0.0",
+  "description": "E-commerce Telegram Mini App with Node.js, React, Stripe, and Supabase",
+  "scripts": {
+    "setup": "./setup.sh",
+    "dev": "./dev.sh",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "build:frontend": "cd frontend && npm run build",
+    "seed": "cd backend && npm run seed",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "mini-app",
+    "e-commerce",
+    "react",
+    "node",
+    "stripe",
+    "supabase"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
