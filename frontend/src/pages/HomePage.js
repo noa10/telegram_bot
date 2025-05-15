@@ -32,8 +32,16 @@ const HomePage = () => {
       try {
         setLoading(true);
         const { data } = await getProducts();
-        setProducts(data);
-        setError(null);
+        console.log('API response for /api/products:', data);
+        console.log('Type of data:', typeof data);
+        if (Array.isArray(data)) {
+          setProducts(data);
+          setError(null);
+        } else {
+          console.error('Products data is not an array:', data);
+          setError('Received invalid product data from server. The format is unexpected.');
+          setProducts([]);
+        }
       } catch (err) {
         const handleError = createErrorHandler(
           (message) => setError(message || 'Failed to load products. Please try again.'),

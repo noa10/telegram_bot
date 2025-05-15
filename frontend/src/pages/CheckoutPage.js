@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useCart } from '../context/CartContext';
 import { useTelegram } from '../context/TelegramContext';
 import { createErrorHandler } from '../utils/errorHandler';
+import { createPaymentIntent } from '../services/api';
 import CheckoutForm from '../components/CheckoutForm';
 import './CheckoutPage.css';
 

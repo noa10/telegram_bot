@@ -7,7 +7,7 @@ const { telegramAuthMiddleware } = require('./middleware/telegramAuth');
 const { supabaseAuthMiddleware } = require('./middleware/supabaseAuth');
 const { validate, orderValidationRules, paymentIntentValidationRules, userOrdersValidationRules } = require('./middleware/validation');
 const { errorHandler, notFoundHandler, ApiError } = require('./middleware/errorHandler');
-const bot = require('./bot');
+const { bot, setupBotFeatures } = require('./bot');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -165,8 +165,8 @@ app.post(`/api/webhook/${process.env.TELEGRAM_BOT_TOKEN}`, express.json(), (req,
 });
 
 // Only start the server if this file is run directly
-if (require.main === module) {
-  const server = app.listen(PORT, () => {
+if (require.main === module || process.env.VERCEL) {
+  const server = app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
 
     // Set webhook in production
@@ -177,13 +177,27 @@ if (require.main === module) {
       const webhookPath = `/api/webhook/${process.env.TELEGRAM_BOT_TOKEN}`;
       const fullWebhookUrl = `${webhookUrl}${webhookPath}`;
 
-      bot.setWebHook(fullWebhookUrl)
-        .then(() => {
-          console.log(`Webhook set to ${fullWebhookUrl}`);
-        })
-        .catch((error) => {
-          console.error('Error setting webhook:', error);
-        });
+      console.log(`Attempting to set webhook to ${fullWebhookUrl}`);
+
+      try {
+        // Configure the webhook with additional options
+        const webhookOptions = {
+          max_connections: 100 // Allow more simultaneous webhook connections
+        };
+
+        await bot.setWebHook(fullWebhookUrl, webhookOptions);
+        console.log(`Webhook set successfully to: ${fullWebhookUrl}`);
+
+        // Now that webhook is set, configure commands and menu button
+        console.log('Setting up bot features after webhook confirmation...');
+        await setupBotFeatures();
+      } catch (error) {
+        console.error('Error setting webhook or bot features:', error.message);
+        console.error('You may need to set up menu button manually using @BotFather');
+      }
+    } else {
+      console.log('Development mode or missing webhook URL: Bot is using polling (configured in bot.js)');
+      // setupBotFeatures is called via setTimeout in bot.js for polling mode
     }
   });
 

@@ -1,6 +1,8 @@
 import axios from 'axios';
 
+console.log('Current REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+console.log('Effective API_URL for axios baseURL:', API_URL);
 
 // Get Telegram initData if available
 const getTelegramInitData = () => {
@@ -31,7 +33,11 @@ api.interceptors.request.use((config) => {
 });
 
 // Product API
-export const getProducts = () => api.get('/api/products');
+export const getProducts = () => {
+  const requestUrl = `${api.defaults.baseURL}/api/products`;
+  console.log('Axios requesting from URL:', requestUrl);
+  return api.get('/api/products');
+};
 export const getProduct = (id) => api.get(`/api/products/${id}`);
 
 // Order API
