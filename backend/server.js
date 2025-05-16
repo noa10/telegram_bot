@@ -56,6 +56,45 @@ app.get('/api/products/:id', async (req, res, next) => {
   }
 });
 
+app.get('/api/products/search', async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      console.log('Search query is empty, returning empty array.');
+      return res.json([]);
+    }
+    console.log(`Searching for products with query: "${q}"`);
+
+    // Use textSearch for potentially better relevance if you have FTS enabled on 'name' and 'description'
+    // const { data, error } = await supabase
+    //   .from('products')
+    //   .select('*')
+    //   .textSearch('fts_column_name', q, { type: 'websearch' }); // Replace 'fts_column_name'
+
+    // Using ilike for broad matching without FTS
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .or(`name.ilike.%${q}%,description.ilike.%${q}%`); // Ensure description is text searchable or handle null
+
+    if (error) {
+      console.error('Supabase search error:', error);
+      throw new ApiError(500, 'Product search failed due to a database error', error.message);
+    }
+    
+    console.log(`Found ${data ? data.length : 0} products for query "${q}"`);
+    res.json(data || []); // Ensure data is an array, even if null
+  } catch (error) {
+    console.error('Error in /api/products/search:', error);
+    // Ensure the error is an instance of ApiError or wrap it
+    if (!(error instanceof ApiError)) {
+        next(new ApiError(500, error.message || 'An unexpected error occurred during search'));
+    } else {
+        next(error);
+    }
+  }
+});
+
 // Order API endpoints
 app.post('/api/orders', telegramAuthMiddleware, supabaseAuthMiddleware, validate(orderValidationRules), async (req, res, next) => {
   try {

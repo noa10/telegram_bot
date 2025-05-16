@@ -1,0 +1,54 @@
+{
+  "rules": [
+    {
+      "type": "ignorePath",
+      "glob": "**/.vercel/**",
+      "reason": "Ignore Vercel build output and configuration files."
+    },
+    {
+      "type": "ignorePath",
+      "glob": "**/.DS_Store",
+      "reason": "Ignore macOS specific metadata files."
+    },
+    {
+      "type": "ignorePath",
+      "glob": "**/.env",
+      "reason": "Ignore environment variable files as they contain sensitive credentials."
+    },
+    {
+      "type": "ignorePath",
+      "glob": "**/node_modules/**",
+      "reason": "Ignore node_modules directories which contain external dependencies."
+    },
+    {
+      "type": "ignorePath",
+      "glob": "frontend/build/**",
+      "reason": "Ignore the frontend production build output."
+    },
+    {
+      "type": "prioritizePath",
+      "glob": "frontend/src/**",
+      "reason": "Prioritize the frontend source code directory."
+    },
+    {
+      "type": "prioritizePath",
+      "glob": "backend/bot.js",
+      "reason": "Prioritize the main Telegram bot logic file."
+    },
+    {
+      "type": "prioritizePath",
+      "glob": "backend/server.js",
+      "reason": "Prioritize the main backend API server file."
+    },
+    {
+      "type": "prioritizePath",
+      "glob": "backend/supabaseClient.js",
+      "reason": "Prioritize the Supabase client configuration file."
+    },
+    {
+      "type": "prioritizePath",
+      "glob": "backend/vercel.json",
+      "reason": "Prioritize the Vercel deployment configuration for the backend."
+    }
+  ]
+} 

@@ -21,10 +21,12 @@
   "type": "commonjs",
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
+    "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
+    "form-data": "^4.0.2",
     "node-fetch": "^3.3.2",
     "node-telegram-bot-api": "^0.66.0",
     "stripe": "^18.1.0"
