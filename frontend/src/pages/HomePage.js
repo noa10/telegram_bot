@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getProducts } from '../services/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getProducts, getCategories } from '../services/api';
 import { useTelegram } from '../context/TelegramContext';
 import { useCart } from '../context/CartContext';
+import { useTheme } from '../context/ThemeContext';
 import { createErrorHandler } from '../utils/errorHandler';
 import ProductCard from '../components/ProductCard';
 import './HomePage.css';
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { showMainButton, hideBackButton } = useTelegram();
   const { totalItems } = useCart();
+  const { theme, toggleTheme } = useTheme(); // Use theme context
   const navigate = useNavigate();
+  const { categoryName } = useParams(); // Get category from URL if present
 
   useEffect(() => {
     // Hide back button
@@ -24,37 +29,58 @@ const HomePage = () => {
       showMainButton('View Cart', () => navigate('/cart'));
     }
 
-    // Log for testing automatic deployment
-    console.log('Testing automatic deployment to Vercel');
-
-    // Fetch products
-    const fetchProducts = async () => {
+    // Fetch products and categories
+    const fetchInitialData = async () => {
       try {
         setLoading(true);
-        const { data } = await getProducts();
-        console.log('API response for /api/products:', data);
-        console.log('Type of data:', typeof data);
-        if (Array.isArray(data)) {
-          setProducts(data);
+
+        // Fetch products and categories in parallel for better performance
+        const [productsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ]);
+
+        console.log('API response for /api/products:', productsData);
+        console.log('API response for /api/categories:', categoriesData);
+
+        // Handle products data
+        if (Array.isArray(productsData)) {
+          setProducts(productsData);
+
+          // If categoryName is provided in URL, select that category
+          if (categoryName) {
+            setSelectedCategory(decodeURIComponent(categoryName));
+          }
+
           setError(null);
         } else {
-          console.error('Products data is not an array:', data);
+          console.error('Products data is not an array:', productsData);
           setError('Received invalid product data from server. The format is unexpected.');
           setProducts([]);
         }
+
+        // Handle categories data
+        if (Array.isArray(categoriesData)) {
+          setCategories(categoriesData);
+        } else {
+          console.error('Categories data is not an array:', categoriesData);
+          setCategories([]);
+        }
       } catch (err) {
         const handleError = createErrorHandler(
-          (message) => setError(message || 'Failed to load products. Please try again.'),
+          (message) => setError(message || 'Failed to load data. Please try again.'),
           setLoading
         );
         handleError(err);
+        setProducts([]);
+        setCategories([]);
       } finally {
         setLoading(false); // Ensure loading is set to false regardless of success or failure
       }
     };
 
-    fetchProducts();
-  }, [hideBackButton, navigate, showMainButton, totalItems]);
+    fetchInitialData();
+  }, [hideBackButton, navigate, showMainButton, totalItems, categoryName]);
 
   if (loading) {
     return <div className="loading">Loading products...</div>;
@@ -64,24 +90,60 @@ const HomePage = () => {
     return <div className="error">{error}</div>;
   }
 
+  // Filter products by selected category
+  const filteredProducts = selectedCategory
+    ? products.filter(product => product.category === selectedCategory)
+    : products;
+
   return (
     <div className="home-page">
       <header className="home-header">
         <h1>Shop</h1>
-        {totalItems > 0 && (
-          <button className="cart-button" onClick={() => navigate('/cart')}>
-            Cart ({totalItems})
-          </button>
-        )}
+        <div>
+          {totalItems > 0 && (
+            <button className="cart-button" onClick={() => navigate('/cart')}>
+              Cart ({totalItems})
+            </button>
+          )}
+        </div>
       </header>
 
+      {/* Category filters */}
+      <div className="category-filters">
+        <button
+          key="all-categories-filter"
+          className={selectedCategory === null ? 'active' : ''}
+          onClick={() => setSelectedCategory(null)}
+        >
+          All
+        </button>
+        {categories.map(category => (
+          <button
+            key={category}
+            className={selectedCategory === category ? 'active' : ''}
+            onClick={() => setSelectedCategory(category)}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {/* Display selected category name if one is selected */}
+      {selectedCategory && (
+        <h2 className="category-title">{selectedCategory}</h2>
+      )}
+
       <div className="products-grid">
-        {products.length > 0 ? (
-          products.map(product => (
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))
         ) : (
-          <p className="no-products">No products available.</p>
+          <p className="no-products">
+            {selectedCategory
+              ? `No products available in ${selectedCategory} category.`
+              : 'No products available.'}
+          </p>
         )}
       </div>
     </div>

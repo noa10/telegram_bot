@@ -94,6 +94,13 @@ const OrdersPage = () => {
                   <div className="item-info">
                     <span className="item-name">{item.name}</span>
                     <span className="item-quantity">x{item.quantity}</span>
+                    {item.addons && Object.keys(item.addons).length > 0 && (
+                      <div>
+                        {Object.entries(item.addons).map(([group, option]) => (
+                          <p key={group}>{group}: {option}</p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <span className="item-price">${(item.price * item.quantity).toFixed(2)}</span>
                 </div>

@@ -2,17 +2,19 @@
   padding: 20px;
   max-width: 800px;
   margin: 20px auto;
-  background-color: #fff;
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   font-family: 'Arial', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .back-button {
   background: none;
   border: none;
   font-size: 1.2em;
-  color: #007bff;
+  color: var(--tg-theme-link-color);
   cursor: pointer;
   margin-bottom: 20px;
   display: inline-flex;
@@ -58,22 +60,75 @@
 
 .product-name {
   font-size: 2em;
-  color: #333;
+  color: var(--tg-theme-text-color);
   margin-bottom: 10px;
 }
 
 .product-description {
   font-size: 1em;
-  color: #555;
+  color: var(--tg-theme-hint-color);
   line-height: 1.6;
   margin-bottom: 15px;
 }
 
 .product-price {
   font-size: 1.5em;
-  color: #007bff;
+  color: var(--tg-theme-link-color);
   font-weight: bold;
   margin-bottom: 20px;
+}
+
+.addons-section {
+  margin-bottom: 20px;
+}
+
+.addons-section h2 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.addon-group {
+  margin-bottom: 15px;
+}
+
+.addon-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--tg-theme-text-color);
+}
+
+.addon-group select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 1em;
+  background-color: var(--tg-theme-secondary-bg-color, var(--tg-theme-bg-color));
+  color: var(--tg-theme-text-color);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+  margin-bottom: 20px;
+}
+
+.quantity-selector label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: var(--tg-theme-text-color);
+}
+
+.quantity-selector input {
+  width: 80px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 1em;
+  background-color: var(--tg-theme-secondary-bg-color, var(--tg-theme-bg-color));
+  color: var(--tg-theme-text-color);
 }
 
 .product-actions {
@@ -92,21 +147,21 @@
 }
 
 .add-to-cart-button {
-  background-color: #28a745; /* Green */
-  color: white;
+  background-color: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
 }
 
 .add-to-cart-button:hover {
-  background-color: #218838;
+  opacity: 0.9;
 }
 
 .continue-shopping-button {
-  background-color: #007bff; /* Blue */
-  color: white;
+  background-color: var(--tg-theme-link-color);
+  color: var(--tg-theme-button-text-color);
 }
 
 .continue-shopping-button:hover {
-  background-color: #0056b3;
+  opacity: 0.9;
 }
 
 /* Loading, Error, Not Found States */
@@ -119,6 +174,8 @@
   text-align: center;
   font-family: 'Arial', sans-serif;
   min-height: 300px;
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
 }
 
 .loading-spinner {
@@ -148,8 +205,8 @@
 
 .error-container button, .not-found-container button {
   padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
   border: none;
   border-radius: 5px;
   font-size: 1em;
@@ -157,5 +214,33 @@
 }
 
 .error-container button:hover, .not-found-container button:hover {
-  background-color: #0056b3;
-} 
+  opacity: 0.9;
+}
+
+/* Dark theme specific overrides */
+[data-theme="dark"] .product-image {
+  border-color: #444;
+}
+
+[data-theme="dark"] .addon-group select {
+  border-color: #444;
+}
+
+/* Add-ons section styling */
+.addons-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: var(--tg-theme-secondary-bg-color, var(--tg-theme-bg-color));
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .addons-section {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.addons-section h2 {
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  color: var(--tg-theme-text-color);
+}

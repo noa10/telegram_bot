@@ -1,10 +1,33 @@
 :root {
+  /* Default fallback values */
   --tg-theme-bg-color: #ffffff;
   --tg-theme-text-color: #222222;
   --tg-theme-hint-color: #999999;
   --tg-theme-link-color: #2481cc;
   --tg-theme-button-color: #2481cc;
   --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f5f5f5;
+}
+
+/* These will be overridden by inline styles set in App.js based on Telegram's theme */
+[data-theme="light"] {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #222222;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #2481cc;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f5f5f5;
+}
+
+[data-theme="dark"] {
+  --tg-theme-bg-color: #222222;
+  --tg-theme-text-color: #ffffff;
+  --tg-theme-hint-color: #aaaaaa;
+  --tg-theme-link-color: #66aaff;
+  --tg-theme-button-color: #66aaff;
+  --tg-theme-button-text-color: #000000;
+  --tg-theme-secondary-bg-color: #333333;
 }
 
 * {

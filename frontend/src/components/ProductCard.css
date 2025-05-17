@@ -7,6 +7,8 @@
   margin-bottom: 16px;
   background-color: #fff;
   transition: transform 0.2s ease-in-out;
+  text-decoration: none; /* Remove link underline */
+  color: inherit; /* Inherit text color */
 }
 
 .product-card:hover {
@@ -81,15 +83,15 @@
   .product-card {
     background-color: #2c2c2c;
   }
-  
+
   .product-name {
     color: #fff;
   }
-  
+
   .product-description {
     color: #bbb;
   }
-  
+
   .product-price {
     color: #fff;
   }

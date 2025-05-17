@@ -1,0 +1,126 @@
+Menu
+[
+  {
+    "Id": "0001",
+    "Product Name": "Beef Krapow Set with Beverages",
+    "Price": 15.00,
+    "Category": "Main",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730001.jpg?1721145902"
+  },
+  {
+    "Id": "0002",
+    "Product Name": "Chicken Krapow Set with Beverages",
+    "Price": 15.00,
+    "Category": "Main",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730002.jpg?1721145936"
+  },
+  {
+    "Id": "0003",
+    "Product Name": "Beef Krapow Set",
+    "Price": 12.50,
+    "Category": "Main",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730003.jpg?1721145955"
+  },
+  {
+    "Id": "0004",
+    "Product Name": "Chicken Krapow Set",
+    "Price": 12.50,
+    "Category": "Main",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730004.jpg?1721145974"
+  },
+  {
+    "Id": "0005",
+    "Product Name": "Beef Krapow Only",
+    "Price": 8.50,
+    "Category": "Side",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730005.jpg?1721145989"
+  },
+  {
+    "Id": "0006",
+    "Product Name": "Chicken Krapow Only",
+    "Price": 8.50,
+    "Category": "Side",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730006.jpg?1721146004"
+  },
+  {
+    "Id": "0007",
+    "Product Name": "Rice",
+    "Price": 2.00,
+    "Category": "Side",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730007.jpg?1721146021"
+  },
+  {
+    "Id": "0008",
+    "Product Name": "Fried Egg",
+    "Price": 2.00,
+    "Category": "Side",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730008.jpg?1721146048"
+  },
+  {
+    "Id": "0009",
+    "Product Name": "Beef & Chicken Krapow Set",
+    "Price": 25.00,
+    "Category": "Special Set",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730009.jpg?1721146090"
+  },
+  {
+    "Id": "0010",
+    "Product Name": "Kickapoo (320ml)",
+    "Price": 2.50,
+    "Category": "Beverages",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730010.jpg?1721147513"
+  },
+  {
+    "Id": "0015",
+    "Product Name": "Winter Melon (300ml)",
+    "Price": 2.20,
+    "Category": "Beverages",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730015.jpg?1721147533"
+  },
+  {
+    "Id": "0018",
+    "Product Name": "Soya (300ml)",
+    "Price": 2.20,
+    "Category": "Beverages",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730018.jpg?1721147602"
+  },
+  {
+    "Id": "0019",
+    "Product Name": "Ice Lemon Tea (300ml)",
+    "Price": 2.20,
+    "Category": "Beverages",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730019.jpg?1721147625"
+  },
+  {
+    "Id": "0022",
+    "Product Name": "Pes Krapow",
+    "Price": 10.00,
+    "Category": "Paste",
+    "Image URL": "https://d282v6zd99utr7.cloudfront.net/public/merchant/3173/31730022.jpg?1741565200"
+  }
+]
+
+Addons (add this add on to the id of the product)
+
+Spicy level (Id 0001-0005)
+"Non Spicy",
+"Normal 🌶️",
+"Spicy 🌶️🌶️",
+"Extra Spicy 🌶️🌶️",
+
+Basil (Id 0001-0005) 
+"Thai Holy Basil (Krapow) - Default",
+"Thai Basil (Selasih)",
+"No Basil",
+
+Weight (Id 0001-0005)
+"125g - Default",
+"250g",
+
+Packaging (Id 0001-0005)
+"Food Container (Photodegradable)",
+"Food Container (Plastic)",
+
+Beverages  (Id 0001-0002)
+"Kickapoo",
+"Soya"

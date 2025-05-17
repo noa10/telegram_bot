@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '../context/CartContext';
 import { useTelegram } from '../context/TelegramContext';
+import { useTheme } from '../context/ThemeContext';
 import { createOrder } from '../services/api';
 import { createErrorHandler } from '../utils/errorHandler';
 import './CheckoutForm.css';
@@ -11,6 +12,7 @@ const CheckoutForm = ({ onSuccess, clientSecret }) => {
   const elements = useElements();
   const { items, totalAmount, clearCart } = useCart();
   const { user, showPopup } = useTelegram();
+  const { theme } = useTheme();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -78,7 +80,11 @@ const CheckoutForm = ({ onSuccess, clientSecret }) => {
         // Create order in database
         const orderData = {
           userId: user?.id || 'anonymous',
-          products: items,
+          products: items.map(item => ({
+            ...item,
+            // Ensure addons are properly included in the order
+            addons: item.addons || {}
+          })),
           totalAmount,
           paymentIntentId: paymentIntent.id,
           shippingAddress,
@@ -105,6 +111,30 @@ const CheckoutForm = ({ onSuccess, clientSecret }) => {
 
   return (
     <form className="checkout-form" onSubmit={handleSubmit}>
+      <h2>Order Summary</h2>
+      <div className="order-summary">
+        {items.map(item => (
+          <div key={item.id} className="order-item">
+            <div className="item-info">
+              <span className="item-name">{item.name}</span>
+              <span className="item-quantity">x{item.quantity}</span>
+              {item.addons && Object.keys(item.addons).length > 0 && (
+                <div className="item-addons">
+                  {Object.entries(item.addons).map(([group, option]) => (
+                    <p key={group}>{group}: {option}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span className="item-price">${(item.price * item.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+        <div className="order-total">
+          <span>Total:</span>
+          <span>${totalAmount.toFixed(2)}</span>
+        </div>
+      </div>
+
       <h2>Shipping Information</h2>
 
       <div className="form-group">
@@ -193,13 +223,13 @@ const CheckoutForm = ({ onSuccess, clientSecret }) => {
               style: {
                 base: {
                   fontSize: '16px',
-                  color: '#424770',
+                  color: theme === 'dark' ? '#ffffff' : '#424770',
                   '::placeholder': {
-                    color: '#aab7c4',
+                    color: theme === 'dark' ? '#aaaaaa' : '#aab7c4',
                   },
                 },
                 invalid: {
-                  color: '#9e2146',
+                  color: '#e53935',
                 },
               },
             }}

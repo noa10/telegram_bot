@@ -17,6 +17,11 @@
   font-weight: 600;
 }
 
+.home-header div {
+  display: flex;
+  align-items: center;
+}
+
 .cart-button {
   background-color: #0088cc;
   color: white;
@@ -34,10 +39,78 @@
   background-color: #006699;
 }
 
+.home-header button:first-child {
+  background-color: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Category filters */
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.category-filters button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.category-filters button:hover {
+  background-color: #e0e0e0;
+}
+
+.category-filters button.active {
+  background-color: #0088cc;
+  color: white;
+  border-color: #0088cc;
+}
+
+.category-title {
+  font-size: 20px;
+  margin: 0 0 15px 0;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
+  padding: 16px;
+}
+
+/* Mobile-first: Default is 1 column due to auto-fit with minmax */
+@media (max-width: 599px) {
+  .products-grid {
+    grid-template-columns: 1fr; /* Force 1 column on very small screens */
+  }
+}
+
+/* Medium devices (e.g., landscape tablets) - aiming for 2 columns */
+@media (min-width: 600px) and (max-width: 899px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr); /* Force exactly 2 columns */
+  }
+}
+
+/* Large devices (e.g., desktops) - aiming for 3 columns */
+@media (min-width: 900px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr); /* Force exactly 3 columns */
+  }
 }
 
 .loading, .error, .no-products {
@@ -63,17 +136,48 @@
   .products-grid {
     grid-template-columns: 1fr;
   }
+
+  .category-filters {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .category-filters button {
+    width: 100%;
+    text-align: left;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   .home-header h1 {
     color: #fff;
   }
-  
+
+  .category-filters button {
+    background-color: #333;
+    border-color: #444;
+    color: #eee;
+  }
+
+  .category-filters button:hover {
+    background-color: #444;
+  }
+
+  .category-filters button.active {
+    background-color: #0088cc;
+    color: white;
+    border-color: #0088cc;
+  }
+
+  .category-title {
+    color: #eee;
+    border-bottom-color: #444;
+  }
+
   .loading {
     color: #bbb;
   }
-  
+
   .no-products {
     color: #bbb;
   }

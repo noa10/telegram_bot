@@ -7,6 +7,25 @@ CREATE TABLE products (
   image_url TEXT,
   stock_quantity INTEGER DEFAULT 0,
   category TEXT,
+  product_code TEXT, -- For storing the original "Id" from Menu.txt
+  addons JSONB, -- For storing add-ons as a JSON object
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create product_addons table
+CREATE TABLE product_addons (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create product_addon_options table to link products with available addons
+CREATE TABLE product_addon_options (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  product_id UUID REFERENCES products(id),
+  addon_id UUID REFERENCES product_addons(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -116,5 +135,16 @@ EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_orders_updated_at
 BEFORE UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Create triggers for product_addons and product_addon_options
+CREATE TRIGGER update_product_addons_updated_at
+BEFORE UPDATE ON product_addons
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_product_addon_options_updated_at
+BEFORE UPDATE ON product_addon_options
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();

@@ -24,13 +24,13 @@ console.log(`- isProduction: ${isProduction}`);
 console.log(`- MINI_APP_URL: ${webAppUrl}`);
 console.log(`- WEBHOOK_URL: ${webhookUrl}`);
 
-// Create a custom request handler using axios
+// Create a custom request handler using axios with enhanced reliability
 const axiosRequestHandler = {
   request: async (options) => {
     try {
       const { url, method = 'GET', form, formData, body, timeout = 30000, ...restOptions } = options;
 
-      // Configure axios request
+      // Configure axios request with improved reliability settings
       const axiosOptions = {
         url,
         method,
@@ -40,6 +40,23 @@ const axiosRequestHandler = {
           'Content-Type': 'application/json',
           ...restOptions.headers
         },
+        // Add important connection settings for reliability
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        // Prevent premature connection closing
+        httpAgent: new (require('http').Agent)({
+          keepAlive: true,
+          maxSockets: 100,
+          timeout: 60000
+        }),
+        httpsAgent: new (require('https').Agent)({
+          keepAlive: true,
+          maxSockets: 100,
+          timeout: 60000,
+          rejectUnauthorized: true // Ensure secure connections
+        }),
+        // Retry logic
+        validateStatus: status => status >= 200 && status < 500, // Only retry on 5xx errors
         ...restOptions
       };
 
@@ -59,8 +76,42 @@ const axiosRequestHandler = {
       }
 
       console.log(`Making ${method} request to ${url}`);
-      const response = await axios(axiosOptions);
-      return response.data;
+
+      // Implement retry logic for resilience
+      let retries = 3;
+      let lastError = null;
+
+      while (retries > 0) {
+        try {
+          const response = await axios(axiosOptions);
+          return response.data;
+        } catch (error) {
+          lastError = error;
+          retries--;
+
+          // Check if error is retryable
+          const isRetryable = error.code === 'ECONNRESET' ||
+                             error.code === 'ETIMEDOUT' ||
+                             error.code === 'ESOCKETTIMEDOUT' ||
+                             (error.message && (
+                               error.message.includes('socket hang up') ||
+                               error.message.includes('network socket disconnected') ||
+                               error.message.includes('Client network socket disconnected')
+                             ));
+
+          if (!isRetryable || retries === 0) {
+            break;
+          }
+
+          console.log(`Request failed with error: ${error.message}. Retrying... (${3-retries}/3)`);
+          // Exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, 3-retries)));
+        }
+      }
+
+      // If we got here, all retries failed
+      console.error('All request retries failed:', lastError.message);
+      throw lastError;
     } catch (error) {
       console.error('Axios request error:', error.message);
       throw error;
@@ -113,43 +164,102 @@ bot.on('message', (msg) => {
   console.log('Received message:', JSON.stringify(msg, null, 2));
 });
 
-// Enhanced sendMessageWithRetry function with better error handling
-async function sendMessageWithRetry(chatId, text, options, commandName, retries = 3, initialDelay = 1000) {
+// Enhanced sendMessageWithRetry function with better error handling and resilience
+async function sendMessageWithRetry(chatId, text, options, commandName, retries = 5, initialDelay = 1000) {
   let attempt = 0;
   let currentDelay = initialDelay;
+  let lastError = null;
+
+  // Ensure we have valid parameters
+  if (!chatId) {
+    console.error(`[${commandName}] Invalid chat ID: ${chatId}`);
+    return null;
+  }
+
+  // Truncate very long messages to prevent API errors
+  if (text && text.length > 4000) {
+    text = text.substring(0, 3997) + '...';
+    console.warn(`[${commandName}] Message truncated to 4000 characters`);
+  }
+
+  // Ensure options is an object if provided
+  if (options && typeof options !== 'object') {
+    console.warn(`[${commandName}] Invalid options type, using default options`);
+    options = undefined;
+  }
 
   while (attempt <= retries) {
     try {
       attempt++;
       console.log(`[${commandName}] Attempt ${attempt}/${retries + 1} to send message to chat ID: ${chatId}`);
-      // If options is null/undefined, bot.sendMessage will handle it correctly
-      return await bot.sendMessage(chatId, text, options || undefined);
+
+      // Use a timeout promise to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Send message timeout')), 15000);
+      });
+
+      // Send message with timeout
+      const result = await Promise.race([
+        bot.sendMessage(chatId, text, options || undefined),
+        timeoutPromise
+      ]);
+
+      console.log(`[${commandName}] Message sent successfully to chat ID: ${chatId}`);
+      return result;
     } catch (error) {
+      lastError = error;
+
       // Improved error detection with more detailed logging
       const isRetryableError = (
         error.code === 'EFATAL' ||
+        error.code === 'ECONNRESET' ||
+        error.code === 'ETIMEDOUT' ||
+        error.code === 'ESOCKETTIMEDOUT' ||
+        error.code === 'ECONNABORTED' ||
+        error.code === 'ENETUNREACH' ||
+        error.code === 'ENOTFOUND' ||
         (error.message && (
           error.message.includes('socket hang up') ||
-          error.message.includes('Client network socket disconnected before secure TLS connection was established') ||
+          error.message.includes('Client network socket disconnected') ||
           error.message.includes('ETIMEDOUT') ||
           error.message.includes('ECONNRESET') ||
           error.message.includes('network socket disconnected') ||
           error.message.includes('connection timed out') ||
-          error.message.includes('network error')
+          error.message.includes('network error') ||
+          error.message.includes('timeout') ||
+          error.message.includes('aborted') ||
+          error.message.includes('failed')
         ))
       );
 
       if (isRetryableError && attempt <= retries) {
         console.warn(`[${commandName}] Send attempt ${attempt} failed: ${error.message || error.code}. Retrying in ${currentDelay}ms...`);
         await new Promise(resolve => setTimeout(resolve, currentDelay));
-        currentDelay *= 2; // Exponential backoff
+        currentDelay *= 2; // Exponential backoff with a maximum of 32 seconds
+        currentDelay = Math.min(currentDelay, 32000);
       } else {
-        console.error(`[${commandName}] Failed to send message to chat ID ${chatId} after ${attempt} attempts or due to non-retryable error:`,
-          error.message || error.code || 'Unknown error');
+        const errorMessage = error.message || error.code || 'Unknown error';
+        console.error(`[${commandName}] Failed to send message to chat ID ${chatId} after ${attempt} attempts or due to non-retryable error:`, errorMessage);
+
+        // For non-retryable errors, try one more time with a simplified message
+        if (!isRetryableError && attempt === 1) {
+          console.log(`[${commandName}] Trying one more time with simplified message...`);
+          try {
+            // Try with a simple text message without any markup or keyboard
+            return await bot.sendMessage(chatId, "Sorry, I couldn't process your request. Please try again later.");
+          } catch (fallbackError) {
+            console.error(`[${commandName}] Even simplified message failed:`, fallbackError.message || fallbackError.code);
+          }
+        }
+
         throw error; // Re-throw error if not retryable or retries exhausted
       }
     }
   }
+
+  // If we get here, all retries failed
+  console.error(`[${commandName}] All ${retries + 1} attempts to send message failed.`);
+  throw lastError || new Error('Failed to send message after multiple attempts');
 }
 
 // Handle /start command
@@ -193,6 +303,21 @@ bot.onText(/\/start(?:\\s+(.+))?/, async (msg, match) => {
   }
 });
 
+// Function to get categories from the API
+const getCategories = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/products`);
+    const products = response.data;
+
+    // Extract unique categories
+    const categories = [...new Set(products.map(product => product.category))];
+    return categories;
+  } catch (error) {
+    console.error('Error fetching categories:', error.message);
+    return [];
+  }
+};
+
 // Handle /shop command
 bot.onText(/\/shop/, async (msg) => {
   const chatId = msg.chat.id;
@@ -207,15 +332,37 @@ bot.onText(/\/shop/, async (msg) => {
   }
 
   try {
-    await sendMessageWithRetry(chatId, 'Click below to browse our products:', {
+    // Get categories from API
+    const categories = await getCategories();
+
+    // Create inline keyboard with categories
+    const categoryButtons = categories.map(category => ([
+      { text: category, web_app: { url: `${webAppUrl}/category/${encodeURIComponent(category)}` } }
+    ]));
+
+    // Add "View All" button at the end
+    categoryButtons.push([{ text: '🛍️ View All Products', web_app: { url: webAppUrl } }]);
+
+    await sendMessageWithRetry(chatId, 'Select a category or view all products:', {
       reply_markup: {
-        inline_keyboard: [
-          [{ text: '🛍️ Open Shop (Shop)', web_app: { url: webAppUrl } }]
-        ]
+        inline_keyboard: categoryButtons
       }
     }, commandName);
-    console.log(`Sent ${commandName} response to chat ID: ${chatId}`);
-  } catch (error) { /* Error already logged */ }
+    console.log(`Sent ${commandName} response with ${categories.length} categories to chat ID: ${chatId}`);
+  } catch (error) {
+    console.error(`Error in ${commandName} handler:`, error.message);
+    // Fallback to simple button if categories can't be fetched
+    try {
+      await sendMessageWithRetry(chatId, 'Click below to browse our products:', {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🛍️ Open Shop (Shop)', web_app: { url: webAppUrl } }]
+          ]
+        }
+      }, commandName);
+      console.log(`Sent fallback ${commandName} response to chat ID: ${chatId}`);
+    } catch (fallbackError) { /* Error already logged */ }
+  }
 });
 
 // Handle /menu command
@@ -232,15 +379,37 @@ bot.onText(/\/menu/, async (msg) => {
   }
 
   try {
-    await sendMessageWithRetry(chatId, 'Open our shop menu:', {
+    // Get categories from API
+    const categories = await getCategories();
+
+    // Create inline keyboard with categories
+    const categoryButtons = categories.map(category => ([
+      { text: category, web_app: { url: `${webAppUrl}/category/${encodeURIComponent(category)}` } }
+    ]));
+
+    // Add "View All" button at the end
+    categoryButtons.push([{ text: '🍽️ Full Menu', web_app: { url: webAppUrl } }]);
+
+    await sendMessageWithRetry(chatId, 'Select a category from our menu:', {
       reply_markup: {
-        inline_keyboard: [
-          [{ text: '🛒 Shop Menu (Menu)', web_app: { url: webAppUrl } }]
-        ]
+        inline_keyboard: categoryButtons
       }
     }, commandName);
-    console.log(`Sent ${commandName} response to chat ID: ${chatId}`);
-  } catch (error) { /* Error already logged */ }
+    console.log(`Sent ${commandName} response with ${categories.length} categories to chat ID: ${chatId}`);
+  } catch (error) {
+    console.error(`Error in ${commandName} handler:`, error.message);
+    // Fallback to simple button if categories can't be fetched
+    try {
+      await sendMessageWithRetry(chatId, 'Open our shop menu:', {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '🛒 Shop Menu (Menu)', web_app: { url: webAppUrl } }]
+          ]
+        }
+      }, commandName);
+      console.log(`Sent fallback ${commandName} response to chat ID: ${chatId}`);
+    } catch (fallbackError) { /* Error already logged */ }
+  }
 });
 
 // Handle /myorders command
@@ -373,15 +542,18 @@ bot.on('inline_query', async (query) => {
       type: 'article',
       id: String(product.id), // Ensure ID is a string
       title: product.name,
-      description: `${product.description || ''} - $${parseFloat(product.price).toFixed(2)}`,
+      description: `${product.category ? `[${product.category}] ` : ''}${product.description || ''} - $${parseFloat(product.price).toFixed(2)}`,
       thumb_url: product.image_url || 'https://via.placeholder.com/150', // Placeholder if no image
       input_message_content: {
         message_text: `Check out this product: ${product.name} - $${parseFloat(product.price).toFixed(2)}
+Category: ${product.category || 'Uncategorized'}
 See more: ${webAppUrl}/product/${product.id}`
       },
       reply_markup: {
         inline_keyboard: [[
-          { text: 'View in Shop', web_app: { url: `${webAppUrl}/product/${product.id}` } }
+          { text: 'View Product', web_app: { url: `${webAppUrl}/product/${product.id}` } }
+        ], [
+          { text: `Browse ${product.category || 'All Products'}`, web_app: { url: product.category ? `${webAppUrl}/category/${encodeURIComponent(product.category)}` : webAppUrl } }
         ]]
       }
     }));

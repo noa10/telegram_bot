@@ -36,9 +36,39 @@ api.interceptors.request.use((config) => {
 export const getProducts = () => {
   const requestUrl = `${api.defaults.baseURL}/api/products`;
   console.log('Axios requesting from URL:', requestUrl);
-  return api.get('/api/products');
+  return api.get('/api/products')
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      console.error('Error fetching products:', error);
+      throw error;
+    });
 };
-export const getProduct = (id) => api.get(`/api/products/${id}`);
+
+export const getProduct = (id) => {
+  console.log(`Fetching product with ID: ${id} from ${api.defaults.baseURL}/api/products/${id}`);
+  return api.get(`/api/products/${id}`)
+    .then(response => {
+      console.log('API response:', response);
+      return response.data;
+    })
+    .catch(error => {
+      console.error(`Error fetching product with ID: ${id}:`, error);
+      throw error;
+    });
+};
+
+// Categories API
+export const getCategories = async () => {
+  try {
+    const response = await api.get('/api/categories');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+};
 
 // Order API
 export const createOrder = (orderData) => api.post('/api/orders', orderData);

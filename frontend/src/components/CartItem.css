@@ -35,6 +35,15 @@
   color: #666;
 }
 
+.cart-item-addons {
+  font-size: 12px;
+  color: #888;
+}
+
+.cart-item-addons p {
+  margin: 2px 0;
+}
+
 .cart-item-actions {
   display: flex;
   flex-direction: column;
@@ -89,27 +98,27 @@
     background-color: #2c2c2c;
     border-bottom-color: #444;
   }
-  
+
   .cart-item-name {
     color: #fff;
   }
-  
+
   .cart-item-price {
     color: #bbb;
   }
-  
+
   .quantity-btn {
     background-color: #444;
     border-color: #555;
     color: #fff;
   }
-  
+
   .quantity-input {
     background-color: #333;
     border-color: #555;
     color: #fff;
   }
-  
+
   .remove-btn {
     color: #ff6b6b;
   }
