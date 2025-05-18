@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './ProductCard.css';
 
-const ProductCard = ({ product }) => {
+const ProductCardNew = ({ product }) => {
+  const navigate = useNavigate();
+  
   // Ensure product and product.price are defined before using them
   const priceDisplay = product && typeof product.price === 'number'
     ? `$${product.price.toFixed(2)}`
@@ -15,16 +17,16 @@ const ProductCard = ({ product }) => {
     return <div className="product-card-placeholder">Loading...</div>;
   }
 
-  const handleCardClick = (e) => {
+  const handleCardClick = () => {
     console.log(`ProductCard clicked for product: ${product.id} - ${productName}`);
+    navigate(`/product/${product.id}`);
   };
 
   return (
-    <Link
-      to={`/product/${product.id}`}
+    <div 
       className="product-card"
-      aria-label={`View details for ${productName}`}
       onClick={handleCardClick}
+      aria-label={`View details for ${productName}`}
     >
       <div className="product-image">
         <img src={product.image_url || 'https://via.placeholder.com/150'} alt={productName} />
@@ -37,8 +39,8 @@ const ProductCard = ({ product }) => {
           <span className="view-details-text">View Details</span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
-export default ProductCard;
+export default ProductCardNew;

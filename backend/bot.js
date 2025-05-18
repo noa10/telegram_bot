@@ -306,8 +306,16 @@ bot.onText(/\/start(?:\\s+(.+))?/, async (msg, match) => {
 // Function to get categories from the API
 const getCategories = async () => {
   try {
-    const response = await axios.get(`${API_URL}/api/products`);
-    const products = response.data;
+    // Try both with and without /api prefix for better compatibility
+    let products = [];
+    try {
+      const response = await axios.get(`${API_URL}/products`);
+      products = response.data;
+    } catch (error) {
+      console.log('Error fetching from /products, trying with /api/products:', error.message);
+      const response = await axios.get(`${API_URL}/api/products`);
+      products = response.data;
+    }
 
     // Extract unique categories
     const categories = [...new Set(products.map(product => product.category))];

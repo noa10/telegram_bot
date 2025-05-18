@@ -5,7 +5,7 @@ import { useTelegram } from '../context/TelegramContext';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { createErrorHandler } from '../utils/errorHandler';
-import ProductCard from '../components/ProductCard';
+import ProductCardNew from '../components/ProductCardNew';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -136,7 +136,7 @@ const HomePage = () => {
       <div className="products-grid">
         {filteredProducts.length > 0 ? (
           filteredProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCardNew key={product.id} product={product} />
           ))
         ) : (
           <p className="no-products">

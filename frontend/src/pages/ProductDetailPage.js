@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProduct } from '../services/api';
 import { useCart } from '../context/CartContext';
@@ -12,7 +12,8 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedAddons, setSelectedAddons] = useState({});
-  const [quantity, setQuantity] = useState(1); // Add quantity state
+  const [quantity, setQuantity] = useState(1);
+  const [allRequiredAddonsSelected, setAllRequiredAddonsSelected] = useState(true);
   const { addToCart } = useCart();
   const { theme } = useTheme();
   const { showPopup } = useTelegram();
@@ -76,6 +77,39 @@ const ProductDetailPage = () => {
     fetchProductDetails();
   }, [id]);
 
+  // Check if all required addons are selected
+  useEffect(() => {
+    if (product && product.addons) {
+      // Get required addon groups
+      const requiredGroups = Object.entries(product.addons)
+        .filter(([group, options]) => {
+          // Check if this addon group is marked as required
+          // We're checking if the first option has a "(required)" marker or the group name has a "*" marker
+          if (Array.isArray(options) && options.length > 0) {
+            const isRequired =
+              group.includes('*') ||
+              options.some(opt => typeof opt === 'string' && opt.toLowerCase().includes('(required)'));
+            return isRequired;
+          }
+          return false;
+        })
+        .map(([group]) => group);
+
+      // Check if all required groups have a selection
+      const allSelected = requiredGroups.length === 0 ||
+        requiredGroups.every(group =>
+          selectedAddons[group] && selectedAddons[group].trim() !== ''
+        );
+
+      setAllRequiredAddonsSelected(allSelected);
+      console.log('Required addon groups:', requiredGroups);
+      console.log('All required addons selected:', allSelected);
+    } else {
+      // If no product or no addons, then no requirements to meet
+      setAllRequiredAddonsSelected(true);
+    }
+  }, [product, selectedAddons]);
+
   const handleAddonChange = (group, value) => {
     setSelectedAddons(prev => ({ ...prev, [group]: value }));
   };
@@ -109,22 +143,39 @@ const ProductDetailPage = () => {
           {product.addons && typeof product.addons === 'object' && Object.keys(product.addons).length > 0 && (
             <div className="addons-section">
               <h2>Customize Your Order</h2>
+              <p className="addon-help-text">
+                Items marked with <span className="required-marker">*</span> are required
+              </p>
               {Object.entries(product.addons)
                 .filter(([, options]) => Array.isArray(options) && options.length > 0)
-                .map(([group, options]) => (
-                  <div key={group} className="addon-group">
-                    <label htmlFor={`addon-${group}`}>{group}:</label>
-                    <select
-                      id={`addon-${group}`}
-                      value={selectedAddons[group] || ''}
-                      onChange={(e) => handleAddonChange(group, e.target.value)}
-                    >
-                      {options.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                  </div>
-                ))
+                .map(([group, options]) => {
+                  // Check if this addon group is required
+                  const isRequired =
+                    group.includes('*') ||
+                    options.some(opt => typeof opt === 'string' && opt.toLowerCase().includes('(required)'));
+
+                  // Clean group name for display (remove * if present)
+                  const displayGroup = group.replace('*', '');
+
+                  return (
+                    <div key={group} className={`addon-group ${isRequired ? 'required' : ''}`}>
+                      <label htmlFor={`addon-${group}`}>
+                        {displayGroup}{isRequired ? ' ' : ''}
+                        {isRequired && <span className="required-marker">*</span>}:
+                      </label>
+                      <select
+                        id={`addon-${group}`}
+                        value={selectedAddons[group] || ''}
+                        onChange={(e) => handleAddonChange(group, e.target.value)}
+                        className={isRequired ? 'required-addon' : ''}
+                      >
+                        {options.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })
               }
             </div>
           )}
@@ -142,7 +193,13 @@ const ProductDetailPage = () => {
           </div>
 
           <div className="product-actions">
-            <button onClick={handleAddToCart} className="add-to-cart-button">Add to Cart</button>
+            <button
+              onClick={handleAddToCart}
+              className={`add-to-cart-button ${!allRequiredAddonsSelected ? 'disabled' : ''}`}
+              disabled={!allRequiredAddonsSelected}
+            >
+              {allRequiredAddonsSelected ? 'Add to Cart' : 'Please select required options'}
+            </button>
             <button onClick={() => navigate('/')} className="continue-shopping-button">Continue Shopping</button>
           </div>
         </div>

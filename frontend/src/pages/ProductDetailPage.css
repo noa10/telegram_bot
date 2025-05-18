@@ -82,6 +82,38 @@
   margin-bottom: 20px;
 }
 
+.addon-help-text {
+  font-size: 0.9em;
+  color: var(--tg-theme-hint-color);
+  margin-bottom: 10px;
+}
+
+.required-marker {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.addon-group {
+  margin-bottom: 12px;
+}
+
+.addon-group.required label {
+  font-weight: 500;
+}
+
+.required-addon {
+  border: 1px solid #e74c3c;
+}
+
+.add-to-cart-button.disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.add-to-cart-button.disabled:hover {
+  background-color: #cccccc;
+}
+
 .addons-section h2 {
   font-size: 1.2em;
   margin-bottom: 10px;

@@ -13,8 +13,30 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: ['https://telegram-bot-seven-blue.vercel.app', 'http://localhost:3000', process.env.CORS_ORIGIN || '*'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+};
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Root route handler
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Telegram Mini App API Server',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Handle favicon.ico requests to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No content response
+});
 
 // Health check endpoint to keep the server alive
 app.get('/api/health', (req, res) => {
@@ -26,8 +48,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Product API endpoints
-app.get('/api/products', async (_, res, next) => {
+// Product API endpoints - with and without /api prefix
+const getProductsHandler = async (_, res, next) => {
   try {
     const { data, error } = await supabase.from('products').select('*');
     if (error) {
@@ -37,10 +59,13 @@ app.get('/api/products', async (_, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
 
-// Categories API endpoint
-app.get('/api/categories', async (_, res, next) => {
+app.get('/api/products', getProductsHandler);
+app.get('/products', getProductsHandler);
+
+// Categories API endpoint - with and without /api prefix
+const getCategoriesHandler = async (_, res, next) => {
   try {
     // Using a direct SQL query to get distinct categories
     const { data, error } = await supabase
@@ -58,9 +83,13 @@ app.get('/api/categories', async (_, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
 
-app.get('/api/products/:id', async (req, res, next) => {
+app.get('/api/categories', getCategoriesHandler);
+app.get('/categories', getCategoriesHandler);
+
+// Product detail handler - with and without /api prefix
+const getProductDetailHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
     console.log(`Fetching product with ID: ${id}`);
@@ -96,9 +125,10 @@ app.get('/api/products/:id', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
 
-app.get('/api/products/search', async (req, res, next) => {
+// Search handler - with and without /api prefix
+const searchProductsHandler = async (req, res, next) => {
   try {
     const { q } = req.query;
     if (!q) {
@@ -127,7 +157,7 @@ app.get('/api/products/search', async (req, res, next) => {
     console.log(`Found ${data ? data.length : 0} products for query "${q}"`);
     res.json(data || []); // Ensure data is an array, even if null
   } catch (error) {
-    console.error('Error in /api/products/search:', error);
+    console.error('Error in products search:', error);
     // Ensure the error is an instance of ApiError or wrap it
     if (!(error instanceof ApiError)) {
         next(new ApiError(500, error.message || 'An unexpected error occurred during search'));
@@ -135,10 +165,18 @@ app.get('/api/products/search', async (req, res, next) => {
         next(error);
     }
   }
-});
+};
 
-// Order API endpoints
-app.post('/api/orders', telegramAuthMiddleware, supabaseAuthMiddleware, validate(orderValidationRules), async (req, res, next) => {
+// Note: Order matters! The search route must come before the :id route
+app.get('/api/products/search', searchProductsHandler);
+app.get('/products/search', searchProductsHandler);
+
+// Now add the product detail routes
+app.get('/api/products/:id', getProductDetailHandler);
+app.get('/products/:id', getProductDetailHandler);
+
+// Order API endpoints - with and without /api prefix
+const createOrderHandler = async (req, res, next) => {
   try {
     const { userId, products, totalAmount, paymentIntentId, shippingAddress } = req.body;
 
@@ -165,9 +203,13 @@ app.post('/api/orders', telegramAuthMiddleware, supabaseAuthMiddleware, validate
   } catch (error) {
     next(error);
   }
-});
+};
 
-app.get('/api/orders/user/:userId', telegramAuthMiddleware, supabaseAuthMiddleware, validate(userOrdersValidationRules), async (req, res, next) => {
+app.post('/api/orders', telegramAuthMiddleware, supabaseAuthMiddleware, validate(orderValidationRules), createOrderHandler);
+app.post('/orders', telegramAuthMiddleware, supabaseAuthMiddleware, validate(orderValidationRules), createOrderHandler);
+
+// Get user orders handler - with and without /api prefix
+const getUserOrdersHandler = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -185,10 +227,13 @@ app.get('/api/orders/user/:userId', telegramAuthMiddleware, supabaseAuthMiddlewa
   } catch (error) {
     next(error);
   }
-});
+};
 
-// Stripe Payment Intent API
-app.post('/api/create-payment-intent', telegramAuthMiddleware, supabaseAuthMiddleware, validate(paymentIntentValidationRules), async (req, res, next) => {
+app.get('/api/orders/user/:userId', telegramAuthMiddleware, supabaseAuthMiddleware, validate(userOrdersValidationRules), getUserOrdersHandler);
+app.get('/orders/user/:userId', telegramAuthMiddleware, supabaseAuthMiddleware, validate(userOrdersValidationRules), getUserOrdersHandler);
+
+// Stripe Payment Intent API - with and without /api prefix
+const createPaymentIntentHandler = async (req, res, next) => {
   try {
     const { amount, currency = 'usd' } = req.body;
 
@@ -214,10 +259,13 @@ app.post('/api/create-payment-intent', telegramAuthMiddleware, supabaseAuthMiddl
     }
     next(error);
   }
-});
+};
 
-// Validate Telegram Mini App data
-app.post('/api/validate-telegram-data', (req, res, next) => {
+app.post('/api/create-payment-intent', telegramAuthMiddleware, supabaseAuthMiddleware, validate(paymentIntentValidationRules), createPaymentIntentHandler);
+app.post('/create-payment-intent', telegramAuthMiddleware, supabaseAuthMiddleware, validate(paymentIntentValidationRules), createPaymentIntentHandler);
+
+// Validate Telegram Mini App data - with and without /api prefix
+const validateTelegramDataHandler = (req, res, next) => {
   try {
     const { initData } = req.body;
 
@@ -237,7 +285,10 @@ app.post('/api/validate-telegram-data', (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+};
+
+app.post('/api/validate-telegram-data', validateTelegramDataHandler);
+app.post('/validate-telegram-data', validateTelegramDataHandler);
 
 // Telegram bot webhook endpoint with improved error handling
 app.post(`/api/webhook/${process.env.TELEGRAM_BOT_TOKEN}`, express.json(), (req, res) => {
